@@ -43,23 +43,32 @@ class RestaurantsController {
    }
    reserve = async(req,res) =>  {
       try {
-         const { name, tableNumber,from,to } = req.body
+         const { name, tableNumber,day,from,to } = req.body
          const rest = await models.Restaurants.findOne({where: { name}});
          if (!rest) return res.status(400).send('Restaurant not found');
-         const table = await models.RTables.findOne({where: { tableNumber}});
-         const reserve = await models.Reserves.findOne({where: {tableId:table.id}})
+         const table = await models.RTables.findOne({ where: { tableNumber}});
+         const reserveBetween =  await models.Reserves.findOne({where:
+             {
+               restId: rest.id,
+               tableId: table.id,
+               day,
+               from: {[Op.between]: [from,to]},
+               to: {[Op.between]: [from,to]}
+             }
+         });
          if (!table) return res.status(400).send('Table not found');
-         if(reserve){
-            res.status(400).send(`The ${tableNumber} table is already reserved`);
+         if(reserveBetween){
+            res.status(400).send(`The ${tableNumber} table from ${from} to ${to} is already reserved,try choose another time!`);
          }
          await models.Reserves.create({
             userId: req.verifedUser.id,
             restId: rest.id,
             tableId: table.id,
-            From:from,
-            To:to
+            day:day,
+            from:from,
+            to:to
          })
-         res.status(200).send(`You are reserve the ${tableNumber} table`);
+         res.status(200).send(`You are reserve the ${tableNumber} table from ${from} to ${to}`);
       } catch (err) {
            res.status(400)
            console.log('error=>', err); 
