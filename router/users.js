@@ -1,6 +1,6 @@
 const express = require('express'); 
 const jwt = require('jsonwebtoken'); 
-const secret = 'shhhh'; 
+const secret = process.env.JWT_SECRET; 
 const UserController = require('../controllers/users'); 
 const { 
     registerMiddleware,
